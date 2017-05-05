@@ -55,10 +55,26 @@ public class CommonDBSource implements DBSource {
 		String acquireincrement = props.getProperty("onlyfun.caterpillar.acquireincrement");
 		String maxpoolsize = props.getProperty("onlyfun.caterpillar.maxpoolsize");
 		String maxstatements = props.getProperty("onlyfun.caterpillar.maxstatements");
+		String PreferredTestQuery = props.getProperty("onlyfun.caterpillar.PreferredTestQuery");
+		String IdleConnectionTestPeriod = props.getProperty("onlyfun.caterpillar.IdleConnectionTestPeriod");
+		String MaxIdleTime = props.getProperty("onlyfun.caterpillar.MaxIdleTime");
+		String TestConnectionOnCheckout = props.getProperty("onlyfun.caterpillar.TestConnectionOnCheckout");
 		cpds.setMinPoolSize(Integer.valueOf(minpoolsize));
 		cpds.setAcquireIncrement(Integer.valueOf(acquireincrement));
 		cpds.setMaxPoolSize(Integer.valueOf(maxpoolsize));
 		cpds.setMaxStatements(Integer.valueOf(maxstatements));
+		cpds.setPreferredTestQuery(PreferredTestQuery);
+		cpds.setIdleConnectionTestPeriod(Integer.valueOf(IdleConnectionTestPeriod));
+		cpds.setMaxIdleTime(Integer.valueOf(MaxIdleTime));
+		cpds.setTestConnectionOnCheckout(Boolean.valueOf(TestConnectionOnCheckout));
+//		set to 'SELECT 1'      
+//		preferredTestQuery = 'SELECT 1 '   
+		//set to something much less than wait_timeout, prevents connections from going stale   
+//		idleConnectionTestPeriod = 18000      
+		//set to something slightly less than wait_timeout, preventing 'stale' connections from being //handed out   
+//		maxIdleTime = 25000   
+		//if you can take the performance 'hit', set to "true"   
+//		testConnectionOnCheckout = true   
 	}
 
 	public Connection getConnection()  {

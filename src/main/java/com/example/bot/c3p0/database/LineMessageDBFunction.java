@@ -70,7 +70,7 @@ public class LineMessageDBFunction extends DBFunction {
 			pstmt = conn.prepareStatement(insertSQL);
 			pstmt.setString(1, lineMessageInfo.getChanneltoken());
 			pstmt.setString(2, lineMessageInfo.getSenderid());
-			pstmt.setString(3, lineMessageInfo.getEpochsecond() + "000L");
+			pstmt.setString(3, lineMessageInfo.getEpochsecond() + "000");
 			pstmt.setString(4, lineMessageInfo.getReplytoken());
 			pstmt.setString(5, lineMessageInfo.getText());
 			pstmt.setString(6, lineMessageInfo.getMessagetype());
