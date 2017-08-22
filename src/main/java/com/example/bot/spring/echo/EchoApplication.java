@@ -26,6 +26,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -106,6 +107,20 @@ public class EchoApplication {
 		LineMessageDBFunction lineMessageDBFunction = new LineMessageDBFunction();
 		lineMessageDBFunction.insertLineUserid(event);
 	}
+	@EventMapping
+	public TextMessage handlePostbackMessageEvent(PostbackEvent event) {
+		System.out.println("postevent" + event.getSource().getSenderId());
+		System.out.println("postevent:"+event);
+		String text = "請打「#指令」，查看小幫手功能";
+		if(event.getPostbackContent().getData().equals("#災情通報說明")){
+			text = "【防災小幫手】說明： \n 目前小幫手的資料庫為即時連線至【新竹市政府災情管制表】，相關功能及操作方法說明如下：\n●查詢查詢災情總表： \n→輸入「#災情管理」。 \n ●線上即時通報災情：";
+			text += "\n→輸入「#通報災情」。  \n ●查詢案件處理狀況： \n→輸入「#處理進度」。  \n●各單位待處理案件： \n→輸入「單位名稱」「待處理案件」。 ex：竹光待處理案件    \n●上傳現場處理照片：";
+			text +=" \n1.先指定要上傳照片的案件編號。ex：#119   \n2.選擇照片(一次一張)。  \n3.小幫手會自動將照片鍵入管制表內。  備註：處理速度視各使用者網路狀態，基本上 5 秒內可以完成資訊回傳。";
+		}else if(event.getPostbackContent().getData().equals("#處理進度")){
+			text = "全部案件：129件 \n持續追蹤：6件 \n解除列管：123件";
+		}
+		return new TextMessage(text);
+	}
 
 	@EventMapping
 	public TextMessage handleTextMessageEvent(MessageEvent<TextMessageContent> event) {
@@ -138,24 +153,62 @@ public class EchoApplication {
 		lineMessageInfo.setText(event.getMessage().getText());
 
 		lineMessageDBFunction.insertLineMessageInfo(lineMessageInfo);
-		return new TextMessage("I am Groot!");
+		String text = "請打「#指令」，查看小幫手功能";
+		String eventText = event.getMessage().getText(); 
+		if(eventText.equals("#指令")){
+//			text = "【防災小幫手】說明： \n 目前小幫手的資料庫為即時連線至【新竹市政府災情管制表】，相關功能及操作方法說明如下：\n●查詢查詢災情總表： \n→輸入「#災情管理」。 \n ●線上即時通報災情：";
+//			text += "\n→輸入「#通報災情」。  \n ●查詢案件處理狀況： \n→輸入「#處理進度」。  \n●各單位待處理案件： \n→輸入「單位名稱」「待處理案件」。 ex：竹光待處理案件    \n●上傳現場處理照片：";
+//			text +=" \n1.先指定要上傳照片的案件編號。ex：#119   \n2.選擇照片(一次一張)。  \n3.小幫手會自動將照片鍵入管制表內。  備註：處理速度視各使用者網路狀態，基本上 5 秒內可以完成資訊回傳。";
+			String imageUrl = createUri("downloaded/profile.png");//C:\workspaceJAVA\sample-spring-boot-echo\src\main\resources\static\downloaded
+			System.out.println(imageUrl);
+			ButtonsTemplate buttonsTemplate = new ButtonsTemplate(
+	                imageUrl,
+	                "防災小幫手",
+	                "請選擇下列功能",
+	                Arrays.asList(
+	                        new URIAction("通報災情",
+	                        		"https://script.google.com/macros/s/AKfycbyQeWW8pUCChHr3nlvRJiMX8mAzPWYXE893YvmFgjOR_EQz45U/exec?uid="+event.getSource().getUserId()+"&ts="+new Date().getTime()),
+	                        new URIAction("災情管理",
+	                        		"https://d8362b9b.ngrok.io/disasterreport"),
+	                       new PostbackAction("處理進度",
+	                                          "#處理進度"),
+	                       new PostbackAction("災情通報說明",
+                                   "#災情通報說明")
+	                ));
+	        TemplateMessage templateMessage = new TemplateMessage("Button alt text", buttonsTemplate);
+	        this.reply(event.getReplyToken(), templateMessage);
+	        text = null;
+		}else if(eventText.equals("#通報災情")){
+//			text = "http://60.250.226.78";
+			text = "https://script.google.com/macros/s/AKfycbyQeWW8pUCChHr3nlvRJiMX8mAzPWYXE893YvmFgjOR_EQz45U/exec?uid="+event.getSource().getUserId()+"&ts="+new Date().getTime();
+		}else if(eventText.equals("#處理進度")){
+			text = "全部案件：129件 \n持續追蹤：6件 \n解除列管：123件";
+		}else if(eventText.equals("#災情管理")){
+			text = "https://d8362b9b.ngrok.io/disasterreport";
+		}
+		
+		
+		System.out.println(event);
+		return new TextMessage(text);
 
 	}
 
 	@EventMapping
 	public void handleImageMessageEvent(MessageEvent<ImageMessageContent> event) throws IOException {
 		// You need to install ImageMagick
+		System.out.println(event);
 		System.out.println("ImageMessageContent");
 		handleHeavyContent(event.getReplyToken(), event.getMessage().getId(), responseBody -> {
 			DownloadedContent jpg = saveContent("jpg", responseBody);
-			System.out.println("149"+jpg.getPath());
-			System.out.println("150"+jpg.getUri());
+			System.out.println(responseBody);
+//			System.out.println("149"+jpg.getPath());
+//			System.out.println("150"+jpg.getUri());
 			File myFile = new File(jpg.getPath().toString());
 			String movefile = APPLocation()+"\\src\\main\\resources\\static\\downloaded\\"+myFile.getName();
 			myFile.renameTo(new File(movefile));
 			DownloadedContent previewImg = createTempFile("jpg");
-			System.out.println("152"+previewImg.getPath());
-			System.out.println("153"+previewImg.getUri());
+//			System.out.println("152"+previewImg.getPath());
+//			System.out.println("153"+previewImg.getUri());
 			system("convert", "-resize", "240x", jpg.path.toString(), previewImg.path.toString());
 			System.out.println("160"+jpg.getUri());
 			try {
@@ -270,7 +323,8 @@ public class EchoApplication {
 	
 	@EventMapping
 	public void DefaultMessageEvent(Event event) {
-		System.out.println("Event");
+		System.out.print("DefaultMessageEvent:");
+		System.out.println(event);
 	}
 
 }

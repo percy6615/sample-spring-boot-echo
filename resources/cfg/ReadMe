@@ -1,0 +1,9 @@
+Start Service (:8443) EchoApplication
+ngrok http 8443
+get https url post to line busniess call back url //people add user
+
+
+
+ngrok http 80
+get https url post to imgHostUrl = "https://28f61bab.ngrok.io//";// port 80 https
+start Service
